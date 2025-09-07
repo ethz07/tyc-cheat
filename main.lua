@@ -18,7 +18,7 @@ end
 
 local activeNotifications = {}
 
-local function showNotification(message, duration)
+local function showNotification(message, duration, autoRemove)
 	duration = duration or 3
 	local notifGui = getNotificationGui()
 
@@ -66,22 +66,30 @@ local function showNotification(message, duration)
 
 	table.insert(activeNotifications, notifFrame)
 
-	task.delay(duration, function()
-		if notifFrame and notifFrame.Parent then
-			TweenService:Create(notifFrame, TweenInfo.new(0.3), {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(1, 300, 0, notifFrame.Position.Y.Offset)
-			}):Play()
-			task.wait(0.35)
-			notifFrame:Destroy()
-		end
-	end)
+	if autoRemove then
+		task.delay(duration, function()
+			if notifFrame and notifFrame.Parent then
+				TweenService:Create(notifFrame, TweenInfo.new(0.3), {
+					BackgroundTransparency = 1,
+					Position = UDim2.new(1, 300, 0, notifFrame.Position.Y.Offset)
+				}):Play()
+				task.wait(0.35)
+				notifFrame:Destroy()
+				for i, frame in ipairs(activeNotifications) do
+					if frame == notifFrame then
+						table.remove(activeNotifications, i)
+						break
+					end
+				end
+			end
+		end)
+	end
 end
 
 local function findTycoonStepByStep()
 	local tycoons = workspace:WaitForChild("Tycoons")
 
-	showNotification("👤 Display: " .. displayName, 2)
+	showNotification("👤 Display: " .. displayName, 4, true)
 	task.wait(1.5)
 
 	for i = 1, 10 do
@@ -93,7 +101,7 @@ local function findTycoonStepByStep()
 			if door then
 				for _, obj in ipairs(door:GetChildren()) do
 					if obj:IsA("Model") and string.find(obj.Name, displayName) then
-						showNotification("✅ Found at Tycoon " .. i, 4)
+						showNotification("✅ Found at Tycoon " .. i, 1.2, false)
 						found = true
 						break
 					end
@@ -102,14 +110,13 @@ local function findTycoonStepByStep()
 		end
 
 		if not found then
-			showNotification("❌ Not Found at Tycoon " .. i, 2.5)
+			showNotification("❌ Not Found at Tycoon " .. i, 0.4, true)
 		else
-			break -- bulunduysa devam etmeye gerek yok
+			break
 		end
 
-		task.wait(0.40) -- sıradaki için bekleme
+		task.wait(0.70)
 	end
 end
 
--- 🚀 Çalıştır
 findTycoonStepByStep()
