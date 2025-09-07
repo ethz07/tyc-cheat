@@ -18,14 +18,14 @@ end
 
 local activeNotifications = {}
 
-local function showNotification(message, duration, fast)
+local function showNotification(message, duration, type)
 	duration = duration or 3
 	local notifGui = getNotificationGui()
 
 	local notifFrame = Instance.new("Frame")
 	notifFrame.Size = UDim2.new(0, 280, 0, 60)
-	notifFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	notifFrame.BackgroundTransparency = 1
+	notifFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- koyu gri arka plan
+	notifFrame.BackgroundTransparency = 0
 	notifFrame.BorderSizePixel = 0
 	notifFrame.AnchorPoint = Vector2.new(1, 0)
 	notifFrame.Position = UDim2.new(1, 300, 0, 20)
@@ -35,6 +35,17 @@ local function showNotification(message, duration, fast)
 	local corner = Instance.new("UICorner", notifFrame)
 	corner.CornerRadius = UDim.new(0, 14)
 
+	local stroke = Instance.new("UIStroke", notifFrame)
+	stroke.Thickness = 2
+
+	if type == "display" then
+		stroke.Color = Color3.fromRGB(0, 170, 255)
+	elseif type == "found" then
+		stroke.Color = Color3.fromRGB(0, 200, 0)
+	elseif type == "notfound" then
+		stroke.Color = Color3.fromRGB(200, 0, 0)
+	end
+
 	local titleLabel = Instance.new("TextLabel", notifFrame)
 	titleLabel.Size = UDim2.new(0, 100, 0, 20)
 	titleLabel.Position = UDim2.new(0, 10, 0, 5)
@@ -42,7 +53,7 @@ local function showNotification(message, duration, fast)
 	titleLabel.Text = "Renz Notify"
 	titleLabel.Font = Enum.Font.GothamBold
 	titleLabel.TextSize = 16
-	titleLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	titleLabel.ZIndex = 1001
 
@@ -60,7 +71,6 @@ local function showNotification(message, duration, fast)
 
 	table.insert(activeNotifications, notifFrame)
 
-	-- Tween ile gelme efekti
 	for i, frame in ipairs(activeNotifications) do
 		local targetY = 20 + (i - 1) * (frame.Size.Y.Offset + 10)
 		TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
@@ -68,8 +78,7 @@ local function showNotification(message, duration, fast)
 		}):Play()
 	end
 
-	local removeTime = duration
-	task.delay(removeTime, function()
+	task.delay(duration, function()
 		if notifFrame and notifFrame.Parent then
 			local tweenOut = TweenService:Create(notifFrame, TweenInfo.new(0.3), {
 				BackgroundTransparency = 1,
@@ -99,7 +108,7 @@ end
 local function findTycoonStepByStep()
 	local tycoons = workspace:WaitForChild("Tycoons")
 
-	showNotification("👤 Display: " .. displayName, 2, true)
+	showNotification("👤 Display: " .. displayName, 2, "display")
 	task.wait(2)
 
 	for i = 1, 10 do
@@ -111,7 +120,7 @@ local function findTycoonStepByStep()
 			if door then
 				for _, obj in ipairs(door:GetChildren()) do
 					if obj:IsA("Model") and string.find(obj.Name, displayName) then
-						showNotification("✅ Found at Tycoon " .. i, 2.5, true)
+						showNotification("✅ Found at Tycoon " .. i, 2.5, "found")
 						found = true
 						break
 					end
@@ -120,9 +129,9 @@ local function findTycoonStepByStep()
 		end
 
 		if not found then
-			showNotification("❌ Not Found at Tycoon " .. i, 0.4, true)
+			showNotification("❌ Not Found at Tycoon " .. i, 0.4, "notfound")
 		else
-			task.wait(0.5) -- found mesajını biraz daha yavaş bırak
+			task.wait(0.5)
 			break
 		end
 
