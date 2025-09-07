@@ -101,7 +101,7 @@ local function findTycoonStepByStep()
 			if door then
 				for _, obj in ipairs(door:GetChildren()) do
 					if obj:IsA("Model") and string.find(obj.Name, displayName) then
-						showNotification("✅ Found at Tycoon " .. i, 1.2, false)
+						showNotification("✅ Found at Tycoon " .. i, 2.5, true)
 						found = true
 						break
 					end
@@ -115,7 +115,7 @@ local function findTycoonStepByStep()
 			break
 		end
 
-		task.wait(0.70)
+		task.wait(0.60)
 	end
 end
 
