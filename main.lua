@@ -18,14 +18,14 @@ end
 
 local activeNotifications = {}
 
-local function showNotification(message, duration, autoRemove)
+local function showNotification(message, duration, fast)
 	duration = duration or 3
 	local notifGui = getNotificationGui()
 
 	local notifFrame = Instance.new("Frame")
 	notifFrame.Size = UDim2.new(0, 280, 0, 60)
 	notifFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	notifFrame.BackgroundTransparency = 0.1
+	notifFrame.BackgroundTransparency = 1
 	notifFrame.BorderSizePixel = 0
 	notifFrame.AnchorPoint = Vector2.new(1, 0)
 	notifFrame.Position = UDim2.new(1, 300, 0, 20)
@@ -58,39 +58,49 @@ local function showNotification(message, duration, autoRemove)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.ZIndex = 1001
 
-	notifFrame.BackgroundTransparency = 1
-	TweenService:Create(notifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-		BackgroundTransparency = 0.1,
-		Position = UDim2.new(1, -20, 0, 20 + (#activeNotifications) * (notifFrame.Size.Y.Offset + 10))
-	}):Play()
-
 	table.insert(activeNotifications, notifFrame)
 
-	if autoRemove then
-		task.delay(duration, function()
-			if notifFrame and notifFrame.Parent then
-				TweenService:Create(notifFrame, TweenInfo.new(0.3), {
-					BackgroundTransparency = 1,
-					Position = UDim2.new(1, 300, 0, notifFrame.Position.Y.Offset)
-				}):Play()
-				task.wait(0.35)
-				notifFrame:Destroy()
-				for i, frame in ipairs(activeNotifications) do
-					if frame == notifFrame then
-						table.remove(activeNotifications, i)
-						break
-					end
+	-- Tween ile gelme efekti
+	for i, frame in ipairs(activeNotifications) do
+		local targetY = 20 + (i - 1) * (frame.Size.Y.Offset + 10)
+		TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Position = UDim2.new(1, -20, 0, targetY)
+		}):Play()
+	end
+
+	local removeTime = duration
+	task.delay(removeTime, function()
+		if notifFrame and notifFrame.Parent then
+			local tweenOut = TweenService:Create(notifFrame, TweenInfo.new(0.3), {
+				BackgroundTransparency = 1,
+				Position = UDim2.new(1, 300, 0, notifFrame.Position.Y.Offset)
+			})
+			tweenOut:Play()
+			tweenOut.Completed:Wait()
+			notifFrame:Destroy()
+
+			for i, frame in ipairs(activeNotifications) do
+				if frame == notifFrame then
+					table.remove(activeNotifications, i)
+					break
 				end
 			end
-		end)
-	end
+
+			for i, frame in ipairs(activeNotifications) do
+				local targetY = 20 + (i - 1) * (frame.Size.Y.Offset + 10)
+				TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+					Position = UDim2.new(1, -20, 0, targetY)
+				}):Play()
+			end
+		end
+	end)
 end
 
 local function findTycoonStepByStep()
 	local tycoons = workspace:WaitForChild("Tycoons")
 
-	showNotification("👤 Display: " .. displayName, 4, true)
-	task.wait(1.5)
+	showNotification("👤 Display: " .. displayName, 2, true)
+	task.wait(2)
 
 	for i = 1, 10 do
 		local tycoon = tycoons:FindFirstChild(tostring(i))
@@ -112,10 +122,11 @@ local function findTycoonStepByStep()
 		if not found then
 			showNotification("❌ Not Found at Tycoon " .. i, 0.4, true)
 		else
+			task.wait(0.5) -- found mesajını biraz daha yavaş bırak
 			break
 		end
 
-		task.wait(0.60)
+		task.wait(0.40)
 	end
 end
 
