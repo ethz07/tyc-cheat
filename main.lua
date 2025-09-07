@@ -125,7 +125,7 @@ local function startAutoClicker(tycoonNum)
 		if clickDetector then
 			fireclickdetector(clickDetector)
 		end
-		task.wait(0.35)
+		task.wait(0.05)
 	end
 end
 
