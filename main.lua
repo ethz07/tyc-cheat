@@ -24,7 +24,7 @@ local function showNotification(message, duration, type)
 
 	local notifFrame = Instance.new("Frame")
 	notifFrame.Size = UDim2.new(0, 280, 0, 60)
-	notifFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- koyu gri arka plan
+	notifFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 	notifFrame.BackgroundTransparency = 0
 	notifFrame.BorderSizePixel = 0
 	notifFrame.AnchorPoint = Vector2.new(1, 0)
@@ -44,6 +44,10 @@ local function showNotification(message, duration, type)
 		stroke.Color = Color3.fromRGB(0, 200, 0)
 	elseif type == "notfound" then
 		stroke.Color = Color3.fromRGB(200, 0, 0)
+	elseif type == "running" then
+		stroke.Color = Color3.fromRGB(255, 165, 0) -- turuncu
+	elseif type == "loaded" then
+		stroke.Color = Color3.fromRGB(0, 200, 0) -- yeşil
 	end
 
 	local titleLabel = Instance.new("TextLabel", notifFrame)
@@ -105,11 +109,32 @@ local function showNotification(message, duration, type)
 	end)
 end
 
+local function startAutoClicker(tycoonNum)
+	local clickerPath = workspace.Tycoons:FindFirstChild(tostring(tycoonNum))
+	if not clickerPath then return end
+
+	local clickDetector = clickerPath:WaitForChild("Extras"):WaitForChild("IgnoredBase")
+		:WaitForChild("1stFloorClickToEarn"):WaitForChild("clicker"):WaitForChild("ClickDetector")
+
+	showNotification("⚡ Running Auto Clicker...", 1.3, "running")
+	task.wait(1.3)
+	showNotification("✅ Loaded!", 1.3, "loaded")
+	task.wait(1.3)
+
+	while true do
+		if clickDetector then
+			fireclickdetector(clickDetector)
+		end
+		task.wait(0.35)
+	end
+end
+
 local function findTycoonStepByStep()
 	local tycoons = workspace:WaitForChild("Tycoons")
+	local foundTycoonNum = nil
 
-	showNotification("👤 Display: " .. displayName, 2, "display")
-	task.wait(2)
+	showNotification("👤 Display: " .. displayName, 1.5, "display")
+	task.wait(1.5)
 
 	for i = 1, 10 do
 		local tycoon = tycoons:FindFirstChild(tostring(i))
@@ -122,6 +147,7 @@ local function findTycoonStepByStep()
 					if obj:IsA("Model") and string.find(obj.Name, displayName) then
 						showNotification("✅ Found at Tycoon " .. i, 2.5, "found")
 						found = true
+						foundTycoonNum = i
 						break
 					end
 				end
@@ -136,6 +162,10 @@ local function findTycoonStepByStep()
 		end
 
 		task.wait(0.40)
+	end
+
+	if foundTycoonNum then
+		startAutoClicker(foundTycoonNum)
 	end
 end
 
