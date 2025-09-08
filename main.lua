@@ -45,9 +45,9 @@ local function showNotification(message, duration, type)
 	elseif type == "notfound" then
 		stroke.Color = Color3.fromRGB(200, 0, 0)
 	elseif type == "running" then
-		stroke.Color = Color3.fromRGB(255, 165, 0) -- turuncu
+		stroke.Color = Color3.fromRGB(255, 165, 0)
 	elseif type == "loaded" then
-		stroke.Color = Color3.fromRGB(0, 200, 0) -- yeşil
+		stroke.Color = Color3.fromRGB(0, 200, 0)
 	end
 
 	local titleLabel = Instance.new("TextLabel", notifFrame)
@@ -109,7 +109,8 @@ local function showNotification(message, duration, type)
 	end)
 end
 
-local function startAutoClicker(tycoonNum)
+-- Hooklu maksimum hız auto click
+local function startHookedAutoClicker(tycoonNum)
 	local clickerPath = workspace.Tycoons:FindFirstChild(tostring(tycoonNum))
 	if not clickerPath then return end
 
@@ -121,12 +122,17 @@ local function startAutoClicker(tycoonNum)
 	showNotification("✅ Loaded!", 1.3, "loaded")
 	task.wait(1.3)
 
-	while true do
-		if clickDetector then
-			fireclickdetector(clickDetector)
+	-- Hooklama loop
+	task.spawn(function()
+		while true do
+			pcall(function()
+				if clickDetector then
+					fireclickdetector(clickDetector) -- hook ile maksimum hızda
+				end
+			end)
+			task.wait(0) -- sıfır bekleme ile sürekli
 		end
-		task.wait(0.05)
-	end
+	end)
 end
 
 local function findTycoonStepByStep()
@@ -165,7 +171,7 @@ local function findTycoonStepByStep()
 	end
 
 	if foundTycoonNum then
-		startAutoClicker(foundTycoonNum)
+		startHookedAutoClicker(foundTycoonNum)
 	end
 end
 
